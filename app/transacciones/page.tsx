@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { getDataSource } from "@/lib/data/factory";
 import { getTransacciones } from "@/lib/data/transacciones-service";
 import { formatCompactCurrency } from "@/lib/formatters";
@@ -13,6 +14,27 @@ function q(params: Record<string, string | string[] | undefined>, key: string) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function transaccionesHref(
+  filtros: DashboardFiltros,
+  search: string,
+  page: number
+): string {
+  const u = new URLSearchParams();
+  if (filtros.fechaDesde) u.set("fechaDesde", filtros.fechaDesde);
+  if (filtros.fechaHasta) u.set("fechaHasta", filtros.fechaHasta);
+  if (filtros.mes) u.set("mes", filtros.mes);
+  if (filtros.categoria) u.set("categoria", filtros.categoria);
+  if (filtros.responsable) u.set("responsable", filtros.responsable);
+  if (filtros.estadoPago) u.set("estadoPago", filtros.estadoPago);
+  if (filtros.etapaObra) u.set("etapaObra", filtros.etapaObra);
+  if (filtros.sede) u.set("sede", filtros.sede);
+  if (filtros.canal) u.set("canal", filtros.canal);
+  if (search.trim()) u.set("search", search.trim());
+  u.set("page", String(page));
+  const qs = u.toString();
+  return qs ? `/transacciones?${qs}` : `/transacciones?page=${page}`;
+}
+
 export default async function TransaccionesPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const source = getDataSource();
@@ -21,10 +43,13 @@ export default async function TransaccionesPage({ searchParams }: PageProps) {
   const filtros: DashboardFiltros = {
     fechaDesde: q(params, "fechaDesde"),
     fechaHasta: q(params, "fechaHasta"),
+    mes: q(params, "mes"),
     categoria: q(params, "categoria"),
     responsable: q(params, "responsable"),
     estadoPago: q(params, "estadoPago"),
-    etapaObra: q(params, "etapaObra")
+    etapaObra: q(params, "etapaObra"),
+    sede: q(params, "sede"),
+    canal: q(params, "canal")
   };
 
   const page = Number(q(params, "page") ?? "1");
@@ -44,6 +69,7 @@ export default async function TransaccionesPage({ searchParams }: PageProps) {
       </header>
 
       <form className="panel grid gap-3 p-4 md:grid-cols-6">
+        <input type="hidden" name="page" value="1" />
         <input
           type="text"
           name="search"
@@ -51,6 +77,44 @@ export default async function TransaccionesPage({ searchParams }: PageProps) {
           defaultValue={search}
           className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm md:col-span-2"
         />
+        <input
+          type="date"
+          name="fechaDesde"
+          defaultValue={filtros.fechaDesde}
+          className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm"
+        />
+        <input
+          type="date"
+          name="fechaHasta"
+          defaultValue={filtros.fechaHasta}
+          className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm"
+        />
+        <input
+          type="month"
+          name="mes"
+          defaultValue={filtros.mes ?? ""}
+          className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm"
+        />
+        {catalogos.sedes.length > 0 ? (
+          <select name="sede" defaultValue={filtros.sede} className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm">
+            <option value="">Sede</option>
+            {catalogos.sedes.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        ) : null}
+        {catalogos.canales.length > 0 ? (
+          <select name="canal" defaultValue={filtros.canal} className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm">
+            <option value="">Canal</option>
+            {catalogos.canales.map((item) => (
+              <option key={item} value={item}>
+                {item}
+              </option>
+            ))}
+          </select>
+        ) : null}
         <select name="categoria" defaultValue={filtros.categoria} className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm">
           <option value="">Categoria</option>
           {catalogos.categorias.map((item) => (
@@ -69,7 +133,13 @@ export default async function TransaccionesPage({ searchParams }: PageProps) {
             <option key={item} value={item}>{item}</option>
           ))}
         </select>
-        <button type="submit" className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-bg">
+        <select name="etapaObra" defaultValue={filtros.etapaObra} className="rounded-lg border border-line bg-transparent px-3 py-2 text-sm">
+          <option value="">Etapa obra</option>
+          {catalogos.etapasObra.map((item) => (
+            <option key={item} value={item}>{item}</option>
+          ))}
+        </select>
+        <button type="submit" className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-bg md:col-span-2">
           Filtrar
         </button>
       </form>
@@ -126,13 +196,13 @@ export default async function TransaccionesPage({ searchParams }: PageProps) {
         </p>
         <div className="flex gap-2">
           <Link
-            href={`/transacciones?page=${Math.max(1, data.page - 1)}`}
+            href={transaccionesHref(filtros, search, Math.max(1, data.page - 1)) as Route}
             className="rounded-lg border border-line px-3 py-1"
           >
             Anterior
           </Link>
           <Link
-            href={`/transacciones?page=${Math.min(data.totalPages, data.page + 1)}`}
+            href={transaccionesHref(filtros, search, Math.min(data.totalPages, data.page + 1)) as Route}
             className="rounded-lg border border-line px-3 py-1"
           >
             Siguiente

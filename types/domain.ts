@@ -19,6 +19,10 @@ export interface BaseTransaccion {
   filaOrigen: number;
   mes: number | null;
   ano: number | null;
+  /** Sede / local (columna opcional en CSV). */
+  sede: string;
+  /** Canal de venta (columna opcional en CSV). */
+  canal: string;
 }
 
 export interface PresupuestoItem {
@@ -47,15 +51,23 @@ export interface Catalogos {
   etapasObra: string[];
   responsables: string[];
   tiposMovimiento: string[];
+  /** Valores únicos detectados en transacciones (columna Sede/Local/etc.). */
+  sedes: string[];
+  /** Valores únicos detectados en transacciones (columna Canal, si existe). */
+  canales: string[];
 }
 
 export interface DashboardFiltros {
   fechaDesde?: string;
   fechaHasta?: string;
+  /** yyyy-MM: filtra por mes calendario de `fecha`. */
+  mes?: string;
   categoria?: string;
   responsable?: string;
   estadoPago?: string;
   etapaObra?: string;
+  sede?: string;
+  canal?: string;
 }
 
 export interface DashboardKPIs {

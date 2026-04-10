@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { unstable_cache } from "next/cache";
 import { env } from "@/config/env";
 import { fetchPublicCsvRows } from "@/lib/google/public-csv";
@@ -46,6 +47,14 @@ function applyTransaccionesFilters(
     const matchResponsable = !filtros.responsable || t.responsable === filtros.responsable;
     const matchEstadoPago = !filtros.estadoPago || t.estadoPago === filtros.estadoPago;
     const matchEtapaObra = !filtros.etapaObra || t.etapaObra === filtros.etapaObra;
+    const matchSede = !filtros.sede || t.sede === filtros.sede;
+    const matchCanal = !filtros.canal || t.canal === filtros.canal;
+
+    const matchMes =
+      !filtros.mes ||
+      (t.fecha instanceof Date &&
+        !Number.isNaN(t.fecha.getTime()) &&
+        format(t.fecha, "yyyy-MM") === filtros.mes);
 
     const matchFrom = !from || !t.fecha || t.fecha >= from;
     const matchTo = !to || !t.fecha || t.fecha <= to;
@@ -55,6 +64,9 @@ function applyTransaccionesFilters(
       matchResponsable &&
       matchEstadoPago &&
       matchEtapaObra &&
+      matchSede &&
+      matchCanal &&
+      matchMes &&
       matchFrom &&
       matchTo
     );
@@ -111,7 +123,9 @@ export class PublicCsvSource implements ProyectoDataSource {
       observaciones: parseText(getValue(row, ["Observaciones"])) || undefined,
       filaOrigen: parseInteger(getValue(row, ["Fila_origen", "Fila origen"])) ?? 0,
       mes: parseInteger(getValue(row, ["Mes"])),
-      ano: parseInteger(getValue(row, ["Ano", "Año"]))
+      ano: parseInteger(getValue(row, ["Ano", "Año"])),
+      sede: parseText(getValue(row, ["Sede", "Local", "Ubicacion", "Ubicación", "Venue"])),
+      canal: parseText(getValue(row, ["Canal", "Channel"]))
     }));
 
     return applyTransaccionesFilters(transacciones, filtros);
@@ -158,14 +172,17 @@ export class PublicCsvSource implements ProyectoDataSource {
   }
 
   async getCatalogos(): Promise<Catalogos> {
-    const rows = await getCatalogosRows();
+    const [rows, baseRows] = await Promise.all([getCatalogosRows(), getBaseRows()]);
     const objects = rowsToObjects(rows) as Record<string, string>[];
+    const baseObjects = rowsToObjects(baseRows) as Record<string, string>[];
 
     const categories = new Set<string>();
     const estadosPago = new Set<string>();
     const etapas = new Set<string>();
     const responsables = new Set<string>();
     const tipos = new Set<string>();
+    const sedes = new Set<string>();
+    const canales = new Set<string>();
 
     for (const row of objects) {
       const categoria = parseText(getValue(row, ["Categorias", "Categoria"]));
@@ -181,12 +198,21 @@ export class PublicCsvSource implements ProyectoDataSource {
       if (tipo) tipos.add(tipo);
     }
 
+    for (const row of baseObjects) {
+      const sede = parseText(getValue(row, ["Sede", "Local", "Ubicacion", "Ubicación", "Venue"]));
+      const canal = parseText(getValue(row, ["Canal", "Channel"]));
+      if (sede) sedes.add(sede);
+      if (canal) canales.add(canal);
+    }
+
     return {
       categorias: [...categories].filter(Boolean),
       estadosPago: [...estadosPago].filter(Boolean),
       etapasObra: [...etapas].filter(Boolean),
       responsables: [...responsables].filter(Boolean),
-      tiposMovimiento: [...tipos].filter(Boolean)
+      tiposMovimiento: [...tipos].filter(Boolean),
+      sedes: [...sedes].sort((a, b) => a.localeCompare(b, "es")),
+      canales: [...canales].sort((a, b) => a.localeCompare(b, "es"))
     };
   }
 }
