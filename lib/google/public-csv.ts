@@ -1,4 +1,5 @@
 import { parseCsv } from "@/lib/parsers/csv";
+import { isSafeCsvFetchUrl } from "@/lib/utils/safe-csv-url";
 
 const LOG_PREFIX = "[Dashboard CSV]";
 
@@ -7,14 +8,13 @@ export async function fetchPublicCsvRows(
   url: string | undefined,
   revalidateSeconds: number
 ): Promise<string[][]> {
-  if (!url?.trim()) {
-    console.error(
-      `${LOG_PREFIX} ${sheetLabel}: URL vacía o no definida. Configura la variable de entorno correspondiente.`
+  const trimmed = url?.trim() ?? "";
+  if (!trimmed || !isSafeCsvFetchUrl(trimmed)) {
+    console.warn(
+      `${LOG_PREFIX} ${sheetLabel}: URL omitida (vacía, inválida o no permitida para fetch).`
     );
     return [];
   }
-
-  const trimmed = url.trim();
 
   try {
     const response = await fetch(trimmed, {
@@ -32,7 +32,13 @@ export async function fetchPublicCsvRows(
     }
 
     const text = await response.text();
-    const rows = parseCsv(text);
+    let rows: string[][];
+    try {
+      rows = parseCsv(text);
+    } catch (parseErr) {
+      console.error(`${LOG_PREFIX} ${sheetLabel}: error al parsear CSV.`, parseErr);
+      return [];
+    }
 
     if (rows.length === 0) {
       console.warn(`${LOG_PREFIX} ${sheetLabel}: CSV sin filas parseables.`);

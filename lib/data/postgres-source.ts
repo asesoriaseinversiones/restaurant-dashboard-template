@@ -7,17 +7,29 @@ import type {
 } from "@/types/domain";
 import type { ProyectoDataSource } from "@/lib/data/source";
 
+const EMPTY_CATALOGOS: Catalogos = {
+  categorias: [],
+  estadosPago: [],
+  etapasObra: [],
+  responsables: [],
+  tiposMovimiento: [],
+  sedes: [],
+  canales: []
+};
+
+/** Stub sin lanzar: devuelve colecciones vacías hasta implementar Postgres. */
 export class PostgresSource implements ProyectoDataSource {
   async getBaseTransacciones(_filtros?: DashboardFiltros): Promise<BaseTransaccion[]> {
-    throw new Error("PostgresSource no implementado en esta fase.");
+    void _filtros;
+    return [];
   }
   async getPresupuesto(): Promise<PresupuestoItem[]> {
-    throw new Error("PostgresSource no implementado en esta fase.");
+    return [];
   }
   async getHitosObra(): Promise<HitoObra[]> {
-    throw new Error("PostgresSource no implementado en esta fase.");
+    return [];
   }
   async getCatalogos(): Promise<Catalogos> {
-    throw new Error("PostgresSource no implementado en esta fase.");
+    return { ...EMPTY_CATALOGOS };
   }
 }

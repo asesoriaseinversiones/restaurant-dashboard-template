@@ -26,6 +26,10 @@ export default function ConfiguracionPage() {
               </li>
             ))}
           </ul>
+          <p className="mt-3 text-xs text-[#64748B]">
+            No se aceptan URLs de ejemplo (example.com), placeholders en la ruta ni esquemas distintos de
+            http/https.
+          </p>
         </div>
       </header>
 

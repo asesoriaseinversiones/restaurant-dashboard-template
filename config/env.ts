@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isSafeCsvFetchUrl } from "@/lib/utils/safe-csv-url";
 
 /**
  * Primera URL no vacía entre varios nombres de variable (Google Sheets / Vercel / NEXT_PUBLIC).
@@ -57,34 +58,24 @@ export const publicCsvConfig = {
   GOOGLE_SHEET_CATALOGOS_CSV: env.GOOGLE_SHEET_CATALOGOS_CSV
 } as const;
 
-function isHttpUrl(value: string | undefined): boolean {
-  if (!value?.trim()) return false;
-  try {
-    const u = new URL(value.trim());
-    return u.protocol === "http:" || u.protocol === "https:";
-  } catch {
-    return false;
-  }
-}
-
-/** True si las cuatro URLs CSV están definidas y son http(s). */
+/** True si las cuatro URLs CSV son seguras para producción (https, no placeholder). */
 export function hasPublicCsvConfig(): boolean {
   return (
-    isHttpUrl(publicCsvConfig.GOOGLE_SHEET_BASE_TRANSACCIONES_CSV) &&
-    isHttpUrl(publicCsvConfig.GOOGLE_SHEET_PRESUPUESTO_CSV) &&
-    isHttpUrl(publicCsvConfig.GOOGLE_SHEET_HITOS_OBRA_CSV) &&
-    isHttpUrl(publicCsvConfig.GOOGLE_SHEET_CATALOGOS_CSV)
+    isSafeCsvFetchUrl(publicCsvConfig.GOOGLE_SHEET_BASE_TRANSACCIONES_CSV) &&
+    isSafeCsvFetchUrl(publicCsvConfig.GOOGLE_SHEET_PRESUPUESTO_CSV) &&
+    isSafeCsvFetchUrl(publicCsvConfig.GOOGLE_SHEET_HITOS_OBRA_CSV) &&
+    isSafeCsvFetchUrl(publicCsvConfig.GOOGLE_SHEET_CATALOGOS_CSV)
   );
 }
 
 /** Por variable: si la URL es válida (para pantalla de configuración). */
 export function getPublicCsvUrlStatus(): Record<string, boolean> {
   return {
-    GOOGLE_SHEET_BASE_TRANSACCIONES_CSV: isHttpUrl(
+    GOOGLE_SHEET_BASE_TRANSACCIONES_CSV: isSafeCsvFetchUrl(
       publicCsvConfig.GOOGLE_SHEET_BASE_TRANSACCIONES_CSV
     ),
-    GOOGLE_SHEET_PRESUPUESTO_CSV: isHttpUrl(publicCsvConfig.GOOGLE_SHEET_PRESUPUESTO_CSV),
-    GOOGLE_SHEET_HITOS_OBRA_CSV: isHttpUrl(publicCsvConfig.GOOGLE_SHEET_HITOS_OBRA_CSV),
-    GOOGLE_SHEET_CATALOGOS_CSV: isHttpUrl(publicCsvConfig.GOOGLE_SHEET_CATALOGOS_CSV)
+    GOOGLE_SHEET_PRESUPUESTO_CSV: isSafeCsvFetchUrl(publicCsvConfig.GOOGLE_SHEET_PRESUPUESTO_CSV),
+    GOOGLE_SHEET_HITOS_OBRA_CSV: isSafeCsvFetchUrl(publicCsvConfig.GOOGLE_SHEET_HITOS_OBRA_CSV),
+    GOOGLE_SHEET_CATALOGOS_CSV: isSafeCsvFetchUrl(publicCsvConfig.GOOGLE_SHEET_CATALOGOS_CSV)
   };
 }

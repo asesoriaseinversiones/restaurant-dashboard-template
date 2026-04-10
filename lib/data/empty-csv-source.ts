@@ -22,7 +22,8 @@ const EMPTY_CATALOGOS: Catalogos = {
  * No lanza; devuelve colecciones vacías.
  */
 export class EmptyCsvDataSource implements ProyectoDataSource {
-  async getBaseTransacciones(_?: DashboardFiltros): Promise<BaseTransaccion[]> {
+  async getBaseTransacciones(_filtros?: DashboardFiltros): Promise<BaseTransaccion[]> {
+    void _filtros;
     return [];
   }
 

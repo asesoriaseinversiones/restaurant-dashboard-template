@@ -1,5 +1,7 @@
 import Link from "next/link";
 import type { Route } from "next";
+import { hasPublicCsvConfig } from "@/config/env";
+import { DataAvailabilityBanner } from "@/components/data-availability-banner";
 import { getDataSource } from "@/lib/data/factory";
 import { getTransacciones } from "@/lib/data/transacciones-service";
 import { formatCompactCurrency } from "@/lib/formatters";
@@ -39,6 +41,7 @@ function transaccionesHref(
 
 export default async function TransaccionesPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const configured = hasPublicCsvConfig();
   const source = getDataSource();
   const catalogos = await source.getCatalogos();
 
@@ -68,6 +71,10 @@ export default async function TransaccionesPage({ searchParams }: PageProps) {
       <header>
         <h1 className="text-2xl font-bold">Transacciones</h1>
         <p className="text-sm text-muted">Listado completo con filtros, busqueda y paginacion</p>
+        <DataAvailabilityBanner
+          missingConfig={!configured}
+          emptyDataset={configured && data.total === 0}
+        />
       </header>
 
       <form className="panel grid gap-3 p-4 md:grid-cols-6">
@@ -162,32 +169,40 @@ export default async function TransaccionesPage({ searchParams }: PageProps) {
             </tr>
           </thead>
           <tbody>
-            {data.rows.map((tx) => (
-              <tr key={tx.id} className="border-t border-line">
-                <td className="py-2">{tx.fecha?.toLocaleDateString("es-PA") ?? "-"}</td>
-                <td className="py-2">{tx.id}</td>
-                <td className="py-2">{tx.categoria}</td>
-                <td className="py-2">{tx.tercero}</td>
-                <td className="py-2">{tx.responsable}</td>
-                <td className="py-2">{formatCompactCurrency(tx.valorComprometido)}</td>
-                <td className="py-2">{formatCompactCurrency(tx.valorPagado)}</td>
-                <td className="py-2">{tx.estadoPago}</td>
-                <td className="py-2">
-                  {tx.soporteUrl ? (
-                    <a
-                      href={tx.soporteUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-accent underline"
-                    >
-                      Abrir
-                    </a>
-                  ) : (
-                    "-"
-                  )}
+            {data.rows.length === 0 ? (
+              <tr className="border-t border-line">
+                <td className="py-6 text-center text-muted" colSpan={9}>
+                  No hay transacciones para mostrar.
                 </td>
               </tr>
-            ))}
+            ) : (
+              data.rows.map((tx) => (
+                <tr key={tx.id} className="border-t border-line">
+                  <td className="py-2">{tx.fecha?.toLocaleDateString("es-PA") ?? "-"}</td>
+                  <td className="py-2">{tx.id}</td>
+                  <td className="py-2">{tx.categoria}</td>
+                  <td className="py-2">{tx.tercero}</td>
+                  <td className="py-2">{tx.responsable}</td>
+                  <td className="py-2">{formatCompactCurrency(tx.valorComprometido)}</td>
+                  <td className="py-2">{formatCompactCurrency(tx.valorPagado)}</td>
+                  <td className="py-2">{tx.estadoPago}</td>
+                  <td className="py-2">
+                    {tx.soporteUrl ? (
+                      <a
+                        href={tx.soporteUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-accent underline"
+                      >
+                        Abrir
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </section>

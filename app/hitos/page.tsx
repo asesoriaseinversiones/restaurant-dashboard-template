@@ -1,3 +1,5 @@
+import { hasPublicCsvConfig } from "@/config/env";
+import { DataAvailabilityBanner } from "@/components/data-availability-banner";
 import { getDataSource } from "@/lib/data/factory";
 import { formatPercent } from "@/lib/formatters";
 
@@ -11,6 +13,7 @@ const semaforoColor: Record<string, string> = {
 };
 
 export default async function HitosPage() {
+  const configured = hasPublicCsvConfig();
   const source = getDataSource();
   const rows = await source.getHitosObra();
 
@@ -25,6 +28,10 @@ export default async function HitosPage() {
       <header>
         <h1 className="text-2xl font-bold">Hitos de obra</h1>
         <p className="text-sm text-muted">Seguimiento de tareas, avance y semaforo operativo</p>
+        <DataAvailabilityBanner
+          missingConfig={!configured}
+          emptyDataset={configured && rows.length === 0}
+        />
       </header>
 
       <section className="panel overflow-x-auto p-4">
@@ -42,24 +49,32 @@ export default async function HitosPage() {
             </tr>
           </thead>
           <tbody>
-            {rows.map((hito) => (
-              <tr key={`${hito.frente}-${hito.tarea}`} className="border-t border-line">
-                <td className="py-2">{hito.frente}</td>
-                <td className="py-2">{hito.tarea}</td>
-                <td className="py-2">{hito.responsable}</td>
-                <td className="py-2">{hito.fechaInicio?.toLocaleDateString("es-PA") ?? "-"}</td>
-                <td className="py-2">{hito.fechaObjetivo?.toLocaleDateString("es-PA") ?? "-"}</td>
-                <td className="py-2">{hito.estado}</td>
-                <td className="py-2">{formatPercent(hito.avancePorcentaje)}</td>
-                <td className="py-2">
-                  <span
-                    className={`rounded-full px-2 py-1 text-xs ${semaforoColor[hito.semaforo] ?? semaforoColor.gris}`}
-                  >
-                    {hito.semaforo}
-                  </span>
+            {rows.length === 0 ? (
+              <tr className="border-t border-line">
+                <td className="py-6 text-center text-muted" colSpan={8}>
+                  No hay hitos para mostrar.
                 </td>
               </tr>
-            ))}
+            ) : (
+              rows.map((hito) => (
+                <tr key={`${hito.frente}-${hito.tarea}`} className="border-t border-line">
+                  <td className="py-2">{hito.frente}</td>
+                  <td className="py-2">{hito.tarea}</td>
+                  <td className="py-2">{hito.responsable}</td>
+                  <td className="py-2">{hito.fechaInicio?.toLocaleDateString("es-PA") ?? "-"}</td>
+                  <td className="py-2">{hito.fechaObjetivo?.toLocaleDateString("es-PA") ?? "-"}</td>
+                  <td className="py-2">{hito.estado}</td>
+                  <td className="py-2">{formatPercent(hito.avancePorcentaje)}</td>
+                  <td className="py-2">
+                    <span
+                      className={`rounded-full px-2 py-1 text-xs ${semaforoColor[hito.semaforo] ?? semaforoColor.gris}`}
+                    >
+                      {hito.semaforo}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </section>
@@ -69,14 +84,21 @@ export default async function HitosPage() {
           Proximos vencimientos
         </h2>
         <ul className="space-y-2 text-sm">
-          {vencimientos.map((item) => (
-            <li key={`${item.frente}-${item.tarea}`} className="flex items-center justify-between rounded-lg border border-line px-3 py-2">
-              <span>
-                {item.frente} - {item.tarea}
-              </span>
-              <span className="text-muted">{item.fechaObjetivo?.toLocaleDateString("es-PA")}</span>
-            </li>
-          ))}
+          {vencimientos.length === 0 ? (
+            <li className="text-muted">No hay vencimientos próximos.</li>
+          ) : (
+            vencimientos.map((item) => (
+              <li
+                key={`${item.frente}-${item.tarea}`}
+                className="flex items-center justify-between rounded-lg border border-line px-3 py-2"
+              >
+                <span>
+                  {item.frente} - {item.tarea}
+                </span>
+                <span className="text-muted">{item.fechaObjetivo?.toLocaleDateString("es-PA")}</span>
+              </li>
+            ))
+          )}
         </ul>
       </section>
     </div>

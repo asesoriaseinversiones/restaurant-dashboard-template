@@ -1,5 +1,7 @@
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { hasPublicCsvConfig } from "@/config/env";
+import { DataAvailabilityBanner } from "@/components/data-availability-banner";
 import { getDataSource } from "@/lib/data/factory";
 import { getRestaurantExecutiveView } from "@/lib/data/restaurant-dashboard-facade";
 import { formatCompactCurrency, formatCurrency, formatPercent } from "@/lib/formatters";
@@ -140,6 +142,8 @@ export default async function HomePage({ searchParams }: PageProps) {
     .sort((a, b) => b.percentUtilized - a.percentUtilized)
     .slice(0, 5);
 
+  const datasourceConfigured = hasPublicCsvConfig();
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#F8FBFF_0%,#EEF4FF_100%)] p-4 md:p-8">
       <section className="mx-auto max-w-7xl rounded-[28px] border border-[#C7D7F4] bg-[linear-gradient(180deg,#FFFFFF_0%,#F3F7FF_100%)] p-6 text-[#0F172A] shadow-[0_20px_60px_rgba(37,99,235,0.08)] md:p-10">
@@ -148,6 +152,10 @@ export default async function HomePage({ searchParams }: PageProps) {
             Dashboard ejecutivo
           </h1>
           <p className="mt-2 text-sm text-[#5B6F95]">Restaurante · vista financiera y operativa</p>
+          <DataAvailabilityBanner
+            missingConfig={!datasourceConfigured}
+            emptyDataset={datasourceConfigured && kpis.transactionCount === 0}
+          />
         </div>
 
         <div className="rounded-[24px] border border-[#D7E3F8] bg-[linear-gradient(180deg,#F8FBFF_0%,#EEF4FF_100%)] p-5 md:p-8">
