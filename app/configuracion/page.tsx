@@ -1,5 +1,7 @@
 import { getPublicCsvUrlStatus, hasPublicCsvConfig } from "@/config/env";
 
+export const dynamic = "force-dynamic";
+
 export default function ConfiguracionPage() {
   const configOk = hasPublicCsvConfig();
   const status = getPublicCsvUrlStatus();
@@ -9,6 +11,22 @@ export default function ConfiguracionPage() {
       <header>
         <h1 className="text-2xl font-bold">Configuracion tecnica</h1>
         <p className="text-sm text-muted">URLs CSV publicas y despliegue en Vercel</p>
+        <div className="mt-4 rounded-xl border border-[#D7E3F8] bg-[#F8FBFF] p-4 text-sm text-[#334155]">
+          <p className="font-semibold text-[#0F172A]">Estado de variables CSV</p>
+          <p className="mt-2">
+            Configuración completa:{" "}
+            <span className={configOk ? "font-semibold text-[#0F172A]" : "text-[#5B6F95]"}>
+              {configOk ? "Sí (cuatro URLs https)" : "No — se usan datos vacíos hasta configurar env"}
+            </span>
+          </p>
+          <ul className="mt-2 list-inside list-disc text-[#64748B]">
+            {Object.entries(status).map(([key, ok]) => (
+              <li key={key}>
+                {key}: {ok ? "OK" : "falta o URL inválida"}
+              </li>
+            ))}
+          </ul>
+        </div>
       </header>
 
       <section className="mt-10 rounded-[24px] border border-[#D7E3F8] bg-white p-6 shadow-[0_10px_30px_rgba(37,99,235,0.06)] md:p-8">

@@ -10,6 +10,8 @@ import type {
   SalesMonthSlice
 } from "@/lib/types/restaurant";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
