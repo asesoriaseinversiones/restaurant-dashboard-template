@@ -5,6 +5,8 @@ import { getTransacciones } from "@/lib/data/transacciones-service";
 import { formatCompactCurrency } from "@/lib/formatters";
 import type { DashboardFiltros } from "@/types/domain";
 
+export const dynamic = "force-dynamic";
+
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }

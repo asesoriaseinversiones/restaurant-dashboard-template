@@ -1,6 +1,8 @@
 import { getDataSource } from "@/lib/data/factory";
 import { formatCompactCurrency, formatPercent } from "@/lib/formatters";
 
+export const dynamic = "force-dynamic";
+
 export default async function PresupuestoPage() {
   const source = getDataSource();
   const rows = await source.getPresupuesto();

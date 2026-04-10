@@ -1,6 +1,8 @@
 import { getDataSource } from "@/lib/data/factory";
 import { formatPercent } from "@/lib/formatters";
 
+export const dynamic = "force-dynamic";
+
 const semaforoColor: Record<string, string> = {
   verde: "bg-success/20 text-success",
   amarillo: "bg-warning/20 text-warning",
